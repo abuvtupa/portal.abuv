@@ -373,7 +373,21 @@ footer .social a:hover, footer .social a:focus { transform: scale(1.2); opacity:
 </div>
 
 <script>
+/* URL /exec do Google Apps Script (código em apps-script/Code.gs).
+   Se a API não responder, o site entra em modo demonstração: os dados ficam só neste navegador. */
 const API = 'https://script.google.com/macros/s/AKfycbyQMKKSEzg1DmceApbitOu3CkDIOBwUfwE42lMDEmHUD3myu-xfi6nIu_MR2cUjN8sQWQ/exec';
+const DEMO_KEY = 'abuv_demo_cadastros';
+const DEMO_SENHA = '1234';
+const EXEMPLOS = [
+  { nomeResponsavel: 'Maria Aparecida Souza', email: 'maria.souza@exemplo.com', celular: '(14) 99611-2034', logradouro: 'Rua das Acácias', numero: '215', bairro: 'Jardim Unesp', complemento: '', cidade: 'Tupã - SP', nomeAluno: 'Gabriel Souza', idade: 12, modalidade: 'Jiu Jitsu', observacoes: 'Treina às segundas e quartas.' },
+  { nomeResponsavel: 'José Carlos Pereira', email: 'jose.pereira@exemplo.com', celular: '(14) 99702-4418', logradouro: 'Rua Ipê Amarelo', numero: '87', bairro: 'Jardim Carajás II', complemento: 'Casa 2', cidade: 'Tupã - SP', nomeAluno: 'Ana Clara Pereira', idade: 10, modalidade: 'Ginástica', observacoes: '' },
+  { nomeResponsavel: 'Fernanda Lima', email: 'fernanda.lima@exemplo.com', celular: '(14) 99633-7120', logradouro: 'Avenida Tamoios', numero: '1302', bairro: 'Jardim Itaipu', complemento: '', cidade: 'Tupã - SP', nomeAluno: 'Lucas Lima', idade: 15, modalidade: 'Muay Thai', observacoes: 'Possui luvas próprias.' },
+  { nomeResponsavel: 'Roberto Alves', email: 'roberto.alves@exemplo.com', celular: '(14) 99845-3301', logradouro: 'Rua Pioneiro Gallo Soares', numero: '98', bairro: 'José Feliciano', complemento: '', cidade: 'Tupã - SP', nomeAluno: 'Pedro Henrique Alves', idade: 14, modalidade: 'Krav Magá', observacoes: '' },
+  { nomeResponsavel: 'Cláudia Ribeiro', email: 'claudia.ribeiro@exemplo.com', celular: '(14) 99780-5562', logradouro: 'Rua Guaranis', numero: '44', bairro: 'Jardim Aritana', complemento: 'Fundos', cidade: 'Tupã - SP', nomeAluno: 'Beatriz Ribeiro', idade: 9, modalidade: 'Ginástica', observacoes: 'Alergia a amendoim.' },
+  { nomeResponsavel: 'Antônio Marcos Silva', email: 'antonio.silva@exemplo.com', celular: '(14) 99654-8890', logradouro: 'Rua Caingangues', numero: '310', bairro: 'Conj. Hab. José Maria Gonçalves Gameiro', complemento: '', cidade: 'Tupã - SP', nomeAluno: 'Matheus Silva', idade: 16, modalidade: 'Jiu Jitsu', observacoes: '' },
+  { nomeResponsavel: 'Juliana Martins', email: 'juliana.martins@exemplo.com', celular: '(14) 99721-6643', logradouro: 'Rua Tupinambás', numero: '152', bairro: 'Jardim Unesp', complemento: '', cidade: 'Tupã - SP', nomeAluno: 'Juliana Martins', idade: 29, modalidade: 'Voluntário', observacoes: 'Professora voluntária de ginástica aos sábados.' },
+  { nomeResponsavel: 'Sebastião Oliveira', email: 'sebastiao.oliveira@exemplo.com', celular: '(14) 99812-0457', logradouro: 'Rua Xavantes', numero: '601', bairro: 'Jardim Carajás II', complemento: '', cidade: 'Tupã - SP', nomeAluno: 'Sebastião Oliveira', idade: 41, modalidade: 'Voluntário', observacoes: 'Apoio na organização dos eventos comunitários.' }
+];
 
 new Vue({
   el: '#app',
@@ -410,7 +424,7 @@ new Vue({
     banco: [],
     novo: { nomeResponsavel:'', email:'', celular:'', logradouro:'', numero:'', bairro:'', complemento:'', cidade:'', nomeAluno:'', idade:'', modalidade:'', observacoes:'' },
     filtro: '',
-    page: 1, perPage: 5, loading: false, apiStatus: 'desconectado',
+    page: 1, perPage: 5, loading: false, apiStatus: 'desconectado', modoDemo: false,
     modalOpen: false, modalIndex: 0, modalImage: '',
     detalhes: null, editModal: false, editBuffer: null
   },
@@ -433,19 +447,57 @@ new Vue({
   methods: {
     /* API */
     async apiGetList() {
+      if (!API) throw new Error('API não configurada');
       const url = API + '?action=list';
       const r = await fetch(url, { method: 'GET' });
       if (!r.ok) throw new Error('Falha ao listar');
       const data = await r.json();
+      if (data.ok === false) throw new Error(data.error || 'Falha ao listar');
       this.banco = Array.isArray(data) ? data : (data.data || []);
     },
     async apiPost(action, payload) {
+      if (this.modoDemo) return this.demoPost(action, payload || {});
       const r = await fetch(API + '?action=' + action, { method: 'POST', body: JSON.stringify(payload || {}) });
       const json = await r.json();
       if (!r.ok || json.ok === false) throw new Error(json.error || 'Erro');
       return json.data;
     },
-    setStatus(ok) { this.apiStatus = ok ? 'conectado' : 'desconectado'; },
+    setStatus(ok) { this.apiStatus = ok ? 'conectado' : (this.modoDemo ? 'modo demonstração (dados salvos só neste navegador)' : 'desconectado'); },
+
+    /* Modo demonstração: mesmo contrato da API, gravando no localStorage */
+    demoLer() {
+      try {
+        const salvo = JSON.parse(localStorage.getItem(DEMO_KEY));
+        if (Array.isArray(salvo)) return salvo;
+      } catch (e) { /* sem armazenamento: usa os exemplos */ }
+      return EXEMPLOS.map((r, i) => Object.assign({ id: i + 1 }, r));
+    },
+    demoGravar(lista) {
+      try { localStorage.setItem(DEMO_KEY, JSON.stringify(lista)); } catch (e) { /* segue só em memória */ }
+    },
+    demoPost(action, payload) {
+      let lista = this.demoLer();
+      if ((action === 'delete' || action === 'delete_all') && payload.senha !== DEMO_SENHA) throw new Error('Senha incorreta.');
+      let data = null;
+      if (action === 'insert') {
+        data = Object.assign({}, payload, { id: lista.reduce((m, r) => Math.max(m, Number(r.id) || 0), 0) + 1 });
+        lista.push(data);
+      } else if (action === 'update') {
+        const idx = lista.findIndex(x => Number(x.id) === Number(payload.id));
+        if (idx === -1) throw new Error('Registro não encontrado.');
+        data = Object.assign({}, lista[idx], payload);
+        lista.splice(idx, 1, data);
+      } else if (action === 'delete') {
+        lista = lista.filter(x => Number(x.id) !== Number(payload.id));
+        data = { id: Number(payload.id) };
+      } else if (action === 'delete_all') {
+        lista = []; data = [];
+      } else {
+        throw new Error('Ação inválida: ' + action);
+      }
+      this.demoGravar(lista);
+      return data;
+    },
 
     /* UI helpers */
     openModal(i) {
@@ -470,8 +522,13 @@ new Vue({
     /* CRUD */
     async load() {
       this.loading = true;
-      try { await this.apiGetList(); this.setStatus(true); }
-      catch (e) { console.error(e); this.setStatus(false); alert('Não consegui conectar à API. Verifique a URL no topo do script.'); }
+      try { await this.apiGetList(); this.modoDemo = false; this.setStatus(true); }
+      catch (e) {
+        console.warn('API indisponível, usando modo demonstração:', e);
+        this.modoDemo = true;
+        this.banco = this.demoLer();
+        this.setStatus(false);
+      }
       finally { this.loading = false; }
     },
     async insertRegistro() {
@@ -500,11 +557,10 @@ new Vue({
     },
     async deleteRegistro(registro) {
       const senha = prompt('Informe a senha para excluir o registro:'); if (senha === null) return;
-      if (senha !== '1234') { alert('Senha incorreta.'); return; }
       if (!confirm('Deseja realmente excluir este registro?')) return;
       this.loading = true;
       try {
-        await this.apiPost('delete', { id: registro.id });
+        await this.apiPost('delete', { id: registro.id, senha });
         this.banco = this.banco.filter(r => Number(r.id) !== Number(registro.id));
         if (this.page > this.totalPages) this.page = this.totalPages;
       } catch (e) { alert('Erro ao excluir: ' + e.message); }
@@ -512,10 +568,9 @@ new Vue({
     },
     async resetBanco() {
       const senha = prompt('Informe a senha para APAGAR TODOS os registros:'); if (senha === null) return;
-      if (senha !== '1234') { alert('Senha incorreta.'); return; }
       if (!confirm('Deseja realmente apagar todos os registros?')) return;
       this.loading = true;
-      try { await this.apiPost('delete_all', {}); this.banco = []; this.page = 1; }
+      try { await this.apiPost('delete_all', { senha }); this.banco = []; this.page = 1; }
       catch (e) { alert('Erro ao apagar tudo: ' + e.message); }
       finally { this.loading = false; }
     },
