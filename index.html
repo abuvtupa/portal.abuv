@@ -38,8 +38,6 @@ a:focus, button:focus, [role="button"]:focus, .atividade:focus { outline: 3px so
 /* Cards sempre visíveis quando menos animação */
 @media (prefers-reduced-motion: reduce) { .atividade { opacity: 1 !important; transform: none !important; animation: none !important; } }
 .reduce-motion .atividade { opacity: 1 !important; transform: none !important; animation: none !important; cursor: default; }
-/* Galeria sem interação quando menos animação */
-.reduce-motion .galeria-img { cursor: default; }
 
 /* topo */
 nav { position: fixed; top: 0; left: 0; right: 0; background: #fff; padding: 0.9375rem 1.5625rem; z-index: 1000; display: flex; gap: 1.375rem; white-space: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; align-items: center; justify-content: flex-start; }
@@ -67,7 +65,7 @@ section { padding: 5rem 1.25rem; font-size: 1.25rem; display: flex; flex-directi
 .galeria-img:hover, .galeria-img:focus { transform: scale(1.05); opacity: 0.9; }
 
 /* modal */
-.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:2000; opacity: 0; animation: fadeIn 0.25s forwards; flex-direction: column; padding: 12px; }
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:2000; animation: fadeIn 0.25s; flex-direction: column; padding: 12px; }
 .modal-card { background:#fff; padding:24px; border-radius:12px; max-width:1000px; width:95%; text-align:left; }
 .modal-img { max-width:90%; max-height:80%; border-radius:12px; }
 .modal-controls { margin-top: 20px; display:flex; gap:10px; }
@@ -92,7 +90,7 @@ section { padding: 5rem 1.25rem; font-size: 1.25rem; display: flex; flex-directi
 /* atividades */
 .atividade { background: #fff; padding: 1.5625rem 1.25rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); min-width: 15.625rem; max-width: 17.5rem; display: flex; flex-direction: column; align-items: center; transition: transform 0.3s, opacity 0.4s; cursor: pointer; opacity: 0; animation: slideUp 0.5s forwards; text-align: center; }
 .atividade h3 { color: var(--cor-secundaria); margin-bottom: 0.75rem; }
-@keyframes fadeIn { to { opacity:1; } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 @keyframes slideUp { from { transform: translateY(20px); opacity:0; } to { transform: translateY(0); opacity:1; } }
 
 /* formulário */
@@ -166,18 +164,18 @@ footer .social a:hover, footer .social a:focus { transform: scale(1.2); opacity:
     <h2 id="titulo-quem-somos">Quem Somos</h2>
     <p v-for="p in textoQuemSomos">{{ p }}</p>
     <div class="galeria" role="list" aria-label="Galeria de fotos 'Quem Somos'">
-      <!-- Galeria: desativa clique quando reduceMotionActive -->
+      <!-- Galeria: clicar amplia e navega (vale também com menos animação) -->
       <img
         v-for="(img,i) in imagens"
         :key="img"
         :src="img"
         class="galeria-img"
         :alt="'Foto da ABUV número ' + (i+1)"
-        :role="reduceMotionActive ? null : 'button'"
-        :tabindex="reduceMotionActive ? -1 : 0"
-        @click="!reduceMotionActive && openModal(i)"
-        @keydown.enter.prevent="!reduceMotionActive && openModal(i)"
-        @keydown.space.prevent="!reduceMotionActive && openModal(i)"
+        role="button"
+        tabindex="0"
+        @click="openModal(i)"
+        @keydown.enter.prevent="openModal(i)"
+        @keydown.space.prevent="openModal(i)"
       />
     </div>
   </section>
@@ -516,7 +514,7 @@ new Vue({
       document.removeEventListener('keydown', this.handleModalKeys);
     },
     handleModalKeys(ev) {
-      if (ev.key === 'Escape') { this.modalOpen = false; ev.preventDefault(); }
+      if (ev.key === 'Escape') { this.closeModal(); ev.preventDefault(); }
       if (ev.key === 'ArrowRight') { this.nextImage(); ev.preventDefault(); }
       if (ev.key === 'ArrowLeft') { this.prevImage(); ev.preventDefault(); }
     },
