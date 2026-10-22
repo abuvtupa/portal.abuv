@@ -123,6 +123,8 @@ footer p { margin: 12px 0; font-size: 1.375rem; }
 footer .social a { color: #E4405F; font-size: 3.75rem; margin: 0 15px; transition: transform 0.3s ease, opacity 0.3s ease; }
 footer .social a:hover, footer .social a:focus { transform: scale(1.2); opacity: 0.8; }
 .badge { margin-top:10px; font-size:0.875rem; color:#555; }
+.mapa-contato { width: 100%; max-width: 640px; height: 320px; border: 0; border-radius: 12px; margin: 20px 0; box-shadow: 0 3px 8px rgba(0,0,0,0.2); }
+@media (max-width: 480px) { .mapa-contato { height: 260px; } }
 
 /* links de contato */
 .contact-link { color: inherit; text-decoration: none; }
@@ -184,7 +186,7 @@ footer .social a:hover, footer .social a:focus { transform: scale(1.2); opacity:
   <section id="atividades" aria-labelledby="titulo-atividades">
     <h2 id="titulo-atividades">Atividades</h2>
 
-    <div class="atividades-carousel" style="display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
+    <div class="atividades-carousel" style="display:flex; gap:20px; justify-content:center; flex-wrap:wrap; align-items:flex-start;">
       <div
         class="atividade"
         v-for="(item, nome) in atividades"
@@ -308,6 +310,9 @@ footer .social a:hover, footer .social a:focus { transform: scale(1.2); opacity:
     <p><a href="tel:+5514996711920" class="contact-link" title="Ligar para ABUV"><i class="fas fa-phone" aria-hidden="true"></i> <span aria-label="Telefone">+55 (14) 99671-1920</span></a></p>
     <p><a href="mailto:abuvtupa@email.com" class="contact-link" title="Enviar e-mail para ABUV"><i class="fas fa-envelope" aria-hidden="true"></i> <span aria-label="E-mail">abuvtupa@email.com</span></a></p>
     <p>📍 Rua Pioneiro Gallo Soares, nº 140 – Bairro José Feliciano – Tupã/SP</p>
+    <iframe class="mapa-contato" title="Mapa com a localização da ABUV em Tupã/SP"
+      src="https://www.google.com/maps?q=Rua%20Pioneiro%20Gallo%20Soares%2C%20140%20-%20Jos%C3%A9%20Feliciano%2C%20Tup%C3%A3%20-%20SP&z=16&output=embed"
+      loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
     <div class="social">
       <a href="https://www.instagram.com/abuvtupa/" target="_blank" title="Instagram da ABUV" aria-label="Abrir Instagram da ABUV"><i class="fab fa-instagram" aria-hidden="true"></i></a>
     </div>
@@ -614,6 +619,18 @@ new Vue({
     btnFontMinus.addEventListener('click', () => { fontScale = Math.max(80, fontScale - 10); applyFontScale(); });
   }
 });
+</script>
+
+<!-- VLibras (tradutor oficial do Governo Federal para Libras) -->
+<div vw class="enabled">
+  <div vw-access-button class="active"></div>
+  <div vw-plugin-wrapper>
+    <div class="vw-plugin-top-wrapper"></div>
+  </div>
+</div>
+<script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+<script>
+  new window.VLibras.Widget('https://vlibras.gov.br/app');
 </script>
 </body>
 </html>
